@@ -31,10 +31,10 @@ def detect_mopi(ori_array, mopi_array):
   grad_mopi_low[grad_mopi<50] = 1
   
   increment = 1 * grad_mopi_low.sum() / grad_ori_low.sum()
-  if increment > 1.2:
-    return True
+  if increment > 1.25:
+    return True, increment
   else:
-    return False
+    return False, increment
 
 
 
@@ -53,9 +53,9 @@ if __name__ == "__main__":
   shoulian_array = np.array(shoulian_im)
   mopi_array = np.array(mopi_im)
 
-  state_mp = detect_mopi(ori_array, mopi_array)
+  state_mp, increment = detect_mopi(ori_array, mopi_array)
   if state_mp:
-    print "mopi has successfully started!"
+    print "mopi has successfully started! detected low gradient increment is {}",format(increment)
 
 
 
