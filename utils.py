@@ -1,24 +1,64 @@
 # -*- coding: utf-8 -*-
 # @Time    : 2018/8/15 22:00
 # @Author  : jf.zhang
-# @File    : classification.py
+# @File    : utils.py
 # @Software: PyCharm
 
-import numpy as np
-import matplotlib.pyplot as plt
 
-t=np.linspace(0,10, 365)
-x=t**2
-r=np.random.randn(365)*10
-y=x+r
-plt.plot(t,y)
-z=[y[0]]
-z2=[y[0]]
-for i in range(len(y)-1):
-    z.append(z[i]*0.9+y[i+1]*0.1)
-    z2.append(z2[i]*0.98+y[i+1]*0.02)
-plt.plot(t,z)
-plt.plot(t,z2)
-plt.legend(['y1','y2','y3'])
-plt.show()
+import cv2
+import os
+import matplotlib.pyplot as plt
+import numpy as np
+from PIL import Image
+
+
+def detect_mopi(ori_array, mopi_array):
+  """
+  detect whether mopi has started, based on the fact that mopi will smooth the picture
+   and it's gradients at sharp points will get turned down.
+  :param ori_array:  the 2d nunpy array for original image
+  :param mopi_array:  the 2d numpy array for processed image
+  :return:
+  """
+  grad_ori_x, grad_ori_y = np.gradient(ori_array)
+  grad_ori = np.sqrt(grad_ori_x**2 + grad_ori_y**2).flatten()
+  grad_mopi_x, grad_mopi_y = np.gradient(mopi_array)
+  grad_mopi = np.sqrt(grad_mopi_x**2 + grad_mopi_y**2).flatten()
+
+  grad_ori_low = np.zeros_like(grad_ori)
+  grad_ori_low[grad_ori<50] = 1
+  grad_mopi_low = np.zeros_like(grad_mopi)
+  grad_mopi_low[grad_mopi<50] = 1
+  
+  increment = 1 * grad_mopi_low.sum() / grad_ori_low.sum()
+  if increment > 1.2:
+    return True
+  else:
+    return False
+
+
+
+if __name__ == "__main__":
+  im_dir = "./resource"
+  ori_path = os.path.join(im_dir, '0.png')
+  shoulian_path = os.path.join(im_dir, 'shoulian_max.png')
+  hongrun_path = os.path.join(im_dir, "hongrun_max.png")
+  mopi_path = os.path.join(im_dir, "mopi_max.png")
+
+  ori_im = Image.open(ori_path).convert('L')
+  shoulian_im = Image.open(shoulian_path).convert('L')
+  mopi_im = Image.open(mopi_path).convert('L')
+
+  ori_array = np.array(ori_im)
+  shoulian_array = np.array(shoulian_im)
+  mopi_array = np.array(mopi_im)
+
+  state_mp = detect_mopi(ori_array, mopi_array)
+  if state_mp:
+    print "mopi has successfully started!"
+
+
+
+
+
 
